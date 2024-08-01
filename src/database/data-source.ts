@@ -13,10 +13,9 @@ const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false,
   logging: ["query"],
-  entities: [__dirname + "/entity/**/*{.ts, .js}"],
+  entities: [__dirname + "/entities/**/*{.ts, .js}"],
   migrations: [__dirname + "/migrations/**/*{.ts, .js}"],
   subscribers: [],
 });
 
 export default AppDataSource;
-

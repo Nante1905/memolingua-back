@@ -19,7 +19,7 @@ app.use(json());
 declare module "express-session" {
   interface SessionData {
     user: {
-      id: number;
+      id: string;
       name: string;
     };
   }

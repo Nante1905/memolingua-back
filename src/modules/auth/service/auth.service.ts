@@ -1,7 +1,10 @@
+import { configDotenv } from "dotenv";
 import * as jwt from "jsonwebtoken";
 import { EntityNotFoundError } from "typeorm";
 import { User } from "../../../database/entities/User";
 import { AuthCredentials } from "../types/auth.type";
+
+configDotenv();
 
 const generateJWT = (user: User, role: string) => {
   return jwt.sign(
@@ -35,6 +38,46 @@ export const signup = async (user: User) => {
 
     return newUser;
   } catch (error) {
+    throw error;
+  }
+};
+
+export const getMe = async (id: string) => {
+  try {
+    const user = await User.findOne({
+      where: { id },
+      select: [
+        "id",
+        "lastname",
+        "firstname",
+        "email",
+        "birthday",
+        "gender",
+        "avatarPath",
+      ],
+      relations: ["role"],
+    });
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateProfile = async (user: User, id: string) => {
+  try {
+    let current = await User.findOne({ where: { id } });
+    if (current) {
+      current.lastname = user.lastname;
+      current.firstname = user.firstname;
+      current.birthday = user.birthday;
+      current.email = user.email;
+      current.gender = user.gender;
+    }
+    const res = await current.save();
+    return res;
+  } catch (error) {
+    console.log(error);
+
     throw error;
   }
 };

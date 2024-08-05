@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mémolingua - Mot de passe oublié</title>
+    <style>
+      body {
+        font-family: "Arial";
+        color: black;
+      }
+      #email {
+        padding: 2rem;
+        border-radius: 6px;
+      }
+      .img-wrapper {
+        margin: auto;
+        width: 50%;
+      }
+      img {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="img-wrapper">
+      <img src="cid:logo" alt="Logo Mémolingua" />
+    </div>
+    <div id="email">
+      <p>Bonjour,</p>
+      <p>
+        Vous avez demandé une réinitialisation du mot de passe de votre compte
+        Mémolingua.
+      </p>
+      <p>
+        Afin de créer votre nouveau mot de passe, veuillez
+        <a href="{{url}}">cliquez ici.</a>
+        Ce lien expirera le <strong>{{expirationDate}}</strong>.
+      </p>
+
+      <p>
+        Si vous n'êtes pas à l'origine de cette demande, par mesure de prudence
+        et afin de garantir la sécurité de vos données, nous vous recommandons
+        de modifier aussi le mot de passe de votre messagerie personnelle.
+      </p>
+      <p>L'équipe Mémolingua.</p>
+    </div>
+  </body>
+</html>

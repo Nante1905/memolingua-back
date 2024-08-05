@@ -2,6 +2,7 @@ import * as jwt from "jsonwebtoken";
 import { EntityNotFoundError } from "typeorm";
 import { User } from "../../../database/entities/User";
 import { AuthCredentials } from "../types/auth.type";
+import crypto = require("crypto");
 
 const generateJWT = (user: User, role: string) => {
   return jwt.sign(

@@ -7,7 +7,7 @@ import {
   USER_ROLE,
 } from "../../../database/constants/user.constant";
 import { ApiResponse } from "../../../shared/types/ApiResponse";
-import { logIn } from "../service/auth.service";
+import { logIn, signup } from "../service/auth.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
 
@@ -62,6 +62,24 @@ export class AuthController {
       } else {
         next(error);
       }
+    }
+  }
+
+  static async singup(req: Request, res: Response, next) {
+    try {
+      const user = req.body;
+      const newUser = await signup(user);
+      console.log(user);
+
+      res.json(
+        new ApiResponse({
+          ok: true,
+          message: "Inscrit",
+          payload: newUser,
+        })
+      );
+    } catch (e) {
+      next(e);
     }
   }
 }

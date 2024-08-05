@@ -4,9 +4,11 @@ import { json } from "express";
 import AppDataSource from "./database/data-source";
 import { User } from "./database/entities/User";
 import { corsMiddleware } from "./middlewares/cors.middleware";
+import { dbmiddleware } from "./middlewares/dberror.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { sessionMiddleware } from "./middlewares/session.middleware";
 import { AuthController } from "./modules/auth/controllers/auth.controller";
+import { authRoute } from "./routes/auth";
 import { BORouter } from "./routes/backOffice";
 
 configDotenv();
@@ -38,8 +40,10 @@ const main = async () => {
   });
 
   app.post("/login", AuthController.loginUser);
+  app.use("/auth", authRoute);
   app.use("/admin", BORouter);
 
+  app.use(dbmiddleware);
   app.use(errorMiddleware);
 
   app.listen(3000, () => {

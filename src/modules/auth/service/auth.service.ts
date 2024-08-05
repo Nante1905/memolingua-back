@@ -25,3 +25,16 @@ export const logIn = async (credentials: AuthCredentials, role: string) => {
   }
   return generateJWT(user[0], role);
 };
+
+export const signup = async (user: User) => {
+  try {
+    const newUser = await User.query(
+      "insert into user_profiles (lastname, email, pwd, id_role) values ($1,$2,crypt($3, gen_salt('bf')), 'ROLE02')",
+      [user.lastname, user.email, user.pwd]
+    );
+
+    return newUser;
+  } catch (error) {
+    throw error;
+  }
+};

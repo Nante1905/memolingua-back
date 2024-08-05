@@ -19,16 +19,11 @@ import {
 } from "../service/restore-pwd.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
-import {
-  requestPwdRestoreSchema,
-  restorePwdSchema,
-} from "../validations/restorePwdSchema";
 
 export class AuthController {
   static async restorePwd(req: Request, res: Response, next: NextFunction) {
     const queryRunner = AppDataSource.createQueryRunner();
     try {
-      restorePwdSchema.parse(req.body);
       const { token, password, confirmPassword } = req.body;
       await queryRunner.startTransaction();
 
@@ -36,15 +31,7 @@ export class AuthController {
       await queryRunner.commitTransaction();
       res.status(StatusCodes.CREATED).json();
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errors: string[] = [];
-        for (const issue of error.errors) {
-          errors.push(issue.message);
-        }
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json(new ApiResponse({ ok: false, error: errors }));
-      } else if (
+      if (
         error instanceof EntityNotFoundError ||
         error instanceof JsonWebTokenError
       ) {
@@ -69,7 +56,6 @@ export class AuthController {
   ) {
     const queryRunner = AppDataSource.createQueryRunner();
     try {
-      requestPwdRestoreSchema.parse(req.body);
       const { email } = req.body;
       await queryRunner.startTransaction();
       const restoreToken = await generateAndSaveRestorePwdToken(
@@ -104,15 +90,7 @@ export class AuthController {
         }
       });
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errors: string[] = [];
-        for (const issue of error.errors) {
-          errors.push(issue.message);
-        }
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json(new ApiResponse({ ok: false, error: errors }));
-      } else if (error instanceof EntityNotFoundError) {
+      if (error instanceof EntityNotFoundError) {
         res.status(StatusCodes.GATEWAY_TIMEOUT).json(
           new ApiResponse({
             ok: false,

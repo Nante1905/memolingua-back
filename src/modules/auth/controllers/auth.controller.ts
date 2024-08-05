@@ -14,6 +14,8 @@ import { authSchema } from "../validations/authSchema";
 export class AuthController {
   static async loginUser(req: Request, res: Response, next: NextFunction) {
     try {
+      console.log(req.body);
+
       // schema validation
       authSchema.parse(req.body);
 

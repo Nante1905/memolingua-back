@@ -7,7 +7,7 @@ import {
   USER_ROLE,
 } from "../../../database/constants/user.constant";
 import { ApiResponse } from "../../../shared/types/ApiResponse";
-import { logIn, signup } from "../service/auth.service";
+import { getMe, logIn, signup, updateProfile } from "../service/auth.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
 
@@ -80,6 +80,29 @@ export class AuthController {
       );
     } catch (e) {
       next(e);
+    }
+  }
+
+  static async me(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await getMe(req.session.user.id);
+      res.json(new ApiResponse({ payload: user }));
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async updateUserProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user = await updateProfile(req.body, req.session.user.id);
+      res.json(
+        new ApiResponse({ payload: user, message: "Informations modifiées" })
+      );
+    } catch (error) {
+      next(error);
     }
   }
 }

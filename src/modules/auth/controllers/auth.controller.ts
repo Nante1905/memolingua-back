@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { JsonWebTokenError } from "jsonwebtoken";
 import { EntityNotFoundError } from "typeorm";
 import { ZodError } from "zod";
 import {
@@ -7,30 +8,76 @@ import {
   USER_ROLE,
 } from "../../../database/constants/user.constant";
 import AppDataSource from "../../../database/data-source";
+import { apiErrors } from "../../../shared/constant/api-error.constant";
 import { formatDate } from "../../../shared/services/formatter";
 import { ApiResponse } from "../../../shared/types/ApiResponse";
 import { logIn } from "../service/auth.service";
 import {
   configureEmailOptions,
   generateAndSaveRestorePwdToken,
+  restorePwd,
 } from "../service/restore-pwd.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
-import { restorePwdSchema } from "../validations/restorePwdSchema";
-import Mail = require("nodemailer/lib/mailer");
+import {
+  requestPwdRestoreSchema,
+  restorePwdSchema,
+} from "../validations/restorePwdSchema";
 
 export class AuthController {
   static async restorePwd(req: Request, res: Response, next: NextFunction) {
     const queryRunner = AppDataSource.createQueryRunner();
     try {
       restorePwdSchema.parse(req.body);
+      const { token, password, confirmPassword } = req.body;
+      await queryRunner.startTransaction();
+
+      await restorePwd(token, password, queryRunner);
+      await queryRunner.commitTransaction();
+      res.status(StatusCodes.CREATED).json();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const errors: string[] = [];
+        for (const issue of error.errors) {
+          errors.push(issue.message);
+        }
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json(new ApiResponse({ ok: false, error: errors }));
+      } else if (
+        error instanceof EntityNotFoundError ||
+        error instanceof JsonWebTokenError
+      ) {
+        await queryRunner.commitTransaction(); //commit delete of token
+        res.status(StatusCodes.FORBIDDEN).json(
+          new ApiResponse({
+            ok: false,
+            error: `Token invalide`,
+          })
+        );
+      } else {
+        await queryRunner.rollbackTransaction();
+        next(error);
+      }
+    }
+  }
+
+  static async requestPwdRestoration(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    try {
+      requestPwdRestoreSchema.parse(req.body);
       const { email } = req.body;
-      queryRunner.startTransaction();
+      await queryRunner.startTransaction();
       const restoreToken = await generateAndSaveRestorePwdToken(
         email,
         queryRunner
       );
 
+      // send email
       const url = `${process.env.CLIENT_URL}/login/reset-password?t=${restoreToken.token}`;
       const { transporter, mailOptions } = configureEmailOptions(
         email,
@@ -38,17 +85,17 @@ export class AuthController {
         formatDate(restoreToken.expirationDate)
       );
 
-      transporter.sendMail(mailOptions, (error, info) => {
+      transporter.sendMail(mailOptions, async (error, info) => {
         if (error) {
-          queryRunner.rollbackTransaction();
+          await queryRunner.rollbackTransaction();
           res.status(500).json(
             new ApiResponse({
               ok: false,
-              error: `Impossible d'envoyer un à email à ${email}`,
+              error: apiErrors.fr.sendEmailError(email),
             })
           );
         } else {
-          queryRunner.commitTransaction();
+          await queryRunner.commitTransaction();
           res.status(StatusCodes.OK).json(
             new ApiResponse({
               ok: true,
@@ -69,11 +116,11 @@ export class AuthController {
         res.status(StatusCodes.GATEWAY_TIMEOUT).json(
           new ApiResponse({
             ok: false,
-            error: `Impossible d'envoyer un à email à ${req.body.email}`,
+            error: apiErrors.fr.sendEmailError(req.body.email),
           })
         );
       } else {
-        queryRunner.rollbackTransaction();
+        await queryRunner.rollbackTransaction();
         next(error);
       }
     }

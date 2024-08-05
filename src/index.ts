@@ -6,7 +6,7 @@ import { RestoreToken } from "./database/entities/RestoreToken";
 import { corsMiddleware } from "./middlewares/cors.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { sessionMiddleware } from "./middlewares/session.middleware";
-import { AuthController } from "./modules/auth/controllers/auth.controller";
+import { AuthRouter } from "./routes/auth.route";
 import { BORouter } from "./routes/backOffice";
 
 configDotenv();
@@ -38,8 +38,7 @@ const main = async () => {
     });
   });
 
-  app.post("/login", AuthController.loginUser);
-  app.post("/restore-pwd", AuthController.restorePwd);
+  app.use("/login", AuthRouter);
   app.use("/admin", BORouter);
 
   app.use(errorMiddleware);

@@ -2,11 +2,49 @@ import * as jwt from "jsonwebtoken";
 import { EntityNotFoundError, QueryRunner } from "typeorm";
 import { RestoreToken } from "../../../database/entities/RestoreToken";
 import { User } from "../../../database/entities/User";
+import { verifyToken } from "../../../shared/services/jwt.helper";
 import { RESTORE_TOKEN_DURATION } from "../constant/auth.constant";
 import crypto = require("crypto");
 import fs = require("fs");
 import Handlebars = require("handlebars");
 import nodemailer = require("nodemailer");
+
+export const restorePwd = async (
+  token: string,
+  password: string,
+  queryRunner: QueryRunner
+) => {
+  const userToken = await queryRunner.query(
+    "select * from restore_token where token = $1 order by expiration_date desc limit 1",
+    [token]
+  );
+
+  console.log(userToken);
+
+  if (userToken.length == 0) {
+    throw new EntityNotFoundError(RestoreToken, "Token");
+  }
+
+  await verifyToken(token, process.env.RESTORE_TOKEN_SECRET).catch(
+    async (err) => {
+      if (userToken.length != 0) {
+        await queryRunner.query("delete from restore_token where token = $1", [
+          token,
+        ]);
+      }
+      throw new jwt.JsonWebTokenError(err);
+    }
+  );
+
+  // UPDATE PWD
+  await queryRunner.query(
+    "update user_profiles set pwd = crypt($1, gen_salt('bf')) where id = $2",
+    [password, userToken[0].id_user]
+  );
+  await queryRunner.query("delete from restore_token where token = $1", [
+    token,
+  ]);
+};
 
 // mailing
 export const configureEmailOptions = (
@@ -18,7 +56,6 @@ export const configureEmailOptions = (
     "./src/template/email.template.html",
     "utf-8"
   );
-  const logoAttachment = fs.readFileSync("./public/img/logo-memolingua.svg");
   const compiledTemplate = Handlebars.compile(emailTemplate);
   const html = compiledTemplate({ url, expirationDate });
 

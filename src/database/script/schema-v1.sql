@@ -197,7 +197,7 @@ create sequence seq_quiz;
 CREATE TABLE quiz(
    id VARCHAR(10) default 'QIZ'||to_char(nextval('seq_quiz'), 'fm0000'),
    title VARCHAR(20)  NOT NULL,
-   description VARCHAR(150)  NOT NULL,
+   description VARCHAR(255)  NOT NULL,
    state SMALLINT default 0,
    creation_date TIMESTAMP NOT NULL default now(),
    id_level VARCHAR(10)  NOT NULL,

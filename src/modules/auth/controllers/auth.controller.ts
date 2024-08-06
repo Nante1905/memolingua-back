@@ -17,6 +17,18 @@ import {
   generateAndSaveRestorePwdToken,
   restorePwd,
 } from "../service/restore-pwd.service";
+import { User } from "../../../database/entities/User";
+import {
+  generateJWT,
+  generateRefreshToken,
+  getMe,
+  logIn,
+  refreshTokens,
+  signup,
+  updatePassword,
+  updateProfile,
+  validateRefreshToken,
+} from "../service/auth.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
 
@@ -110,8 +122,11 @@ export class AuthController {
 
       const { email, pwd } = req.body;
       const credentials: AuthCredentials = { email, pwd };
-      const token = await logIn(credentials, USER_ROLE);
-      res.status(StatusCodes.OK).json(new ApiResponse({ payload: token }));
+      const [token, refreshToken] = await logIn(credentials, USER_ROLE);
+
+      res
+        .status(StatusCodes.OK)
+        .json(new ApiResponse({ payload: { token, refreshToken } }));
     } catch (error) {
       if (error instanceof ZodError) {
         const errors: string[] = [];
@@ -151,6 +166,108 @@ export class AuthController {
       } else {
         next(error);
       }
+    }
+  }
+
+  static async singup(req: Request, res: Response, next) {
+    try {
+      const user = req.body;
+      const newUser = await signup(user);
+      console.log(user);
+
+      res.json(
+        new ApiResponse({
+          ok: true,
+          message: "Inscrit",
+          payload: newUser,
+        })
+      );
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async me(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await getMe(req.session.user.id);
+      res.json(new ApiResponse({ payload: user }));
+    } catch (error) {
+      next(error);
+    }
+  }
+  static async updateUserProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user = await updateProfile(req.body, req.session.user.id);
+      res.json(
+        new ApiResponse({ payload: user, message: "Informations modifiées" })
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updatePwd(req: Request, res: Response, next: NextFunction) {
+    try {
+      await updatePassword(req.body, req.session.user.id);
+      res.json(new ApiResponse({ message: "Mot de passe modifié" }));
+    } catch (error) {
+      // console.log();
+      if (error instanceof EntityNotFoundError) {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          new ApiResponse({
+            ok: false,
+            error: "Ancien mot de passe invalide",
+          })
+        );
+      } else {
+        next(error);
+      }
+    }
+  }
+
+  static async generateAccessToken(req: Request, res: Response, user: User) {
+    const accessToken = generateJWT(user, user.role.code);
+    const refreshToken = generateRefreshToken(user);
+    refreshTokens[user.id].add(refreshToken);
+    res.json(
+      new ApiResponse({
+        ok: true,
+        payload: {
+          accessToken,
+          refreshToken,
+        },
+      })
+    );
+  }
+
+  static async refreshTokenHandler(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.body.token) {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          new ApiResponse({
+            ok: false,
+            error: "Token is missing",
+          })
+        );
+        return;
+      }
+      await validateRefreshToken(req, res, req.body.token);
+    } catch (error) {
+      res.json(
+        new ApiResponse({
+          ok: false,
+          error,
+        })
+      );
+      // next(error);
     }
   }
 }

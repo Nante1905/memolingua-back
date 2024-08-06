@@ -4,9 +4,12 @@ import { json } from "express";
 import AppDataSource from "./database/data-source";
 import { User } from "./database/entities/User";
 import { corsMiddleware } from "./middlewares/cors.middleware";
+import { dbmiddleware } from "./middlewares/dberror.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { sessionMiddleware } from "./middlewares/session.middleware";
 import { AuthRouter } from "./routes/auth.route";
+import { AuthController } from "./modules/auth/controllers/auth.controller";
+import { authRoute } from "./routes/auth";
 import { BORouter } from "./routes/backOffice";
 
 configDotenv();
@@ -17,7 +20,7 @@ app.use(json());
 declare module "express-session" {
   interface SessionData {
     user: {
-      id: number;
+      id: string;
       name: string;
     };
   }
@@ -39,8 +42,10 @@ const main = async () => {
   });
 
   app.use("/login", AuthRouter);
+  app.use("/auth", authRoute);
   app.use("/admin", BORouter);
 
+  app.use(dbmiddleware);
   app.use(errorMiddleware);
 
   app.listen(3000, () => {

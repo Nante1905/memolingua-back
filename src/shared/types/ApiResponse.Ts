@@ -2,7 +2,7 @@ export class ApiResponse {
   ok: boolean;
   payload: any;
   message?: string;
-  error?: string;
+  error?: string | {};
 
   constructor({
     ok = true,

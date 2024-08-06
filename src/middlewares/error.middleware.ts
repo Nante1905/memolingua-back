@@ -6,7 +6,7 @@ export const errorMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log(error);
+  console.log("Error middleware ", error);
 
   return res.status(500).json({ err: "Erreur interne du serveur" });
 };

@@ -6,6 +6,7 @@ import { EntityNotFoundError } from "typeorm";
 import { User } from "../../../database/entities/User";
 import { AuthController } from "../controllers/auth.controller";
 import { AuthCredentials } from "../types/auth.type";
+import crypto = require("crypto");
 
 configDotenv();
 

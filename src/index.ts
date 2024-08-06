@@ -7,6 +7,7 @@ import { corsMiddleware } from "./middlewares/cors.middleware";
 import { dbmiddleware } from "./middlewares/dberror.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { sessionMiddleware } from "./middlewares/session.middleware";
+import { AuthRouter } from "./routes/auth.route";
 import { AuthController } from "./modules/auth/controllers/auth.controller";
 import { authRoute } from "./routes/auth";
 import { BORouter } from "./routes/backOffice";
@@ -33,13 +34,14 @@ const main = async () => {
 
   app.get("/", async (req, res) => {
     const data = await User.find();
+
     res.json({
       message: "Hello World",
       data,
     });
   });
 
-  app.post("/login", AuthController.loginUser);
+  app.use("/login", AuthRouter);
   app.use("/auth", authRoute);
   app.use("/admin", BORouter);
 

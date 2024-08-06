@@ -123,7 +123,7 @@ CREATE INDEX idx_cards_media on card_medias(id_card, state);
 create sequence seq_users_global_learning; 
 CREATE TABLE users_global_learning(
    id VARCHAR(10) default 'GBL'||to_char(nextval('seq_users_global_learning'), 'fm0000000'),
-   last_session_date TIMESTAMP NOT NULL,
+   last_session_date TIMESTAMP WITH TIME ZONE NOT NULL,
    nb_cards SMALLINT NOT NULL,
    timer INTERVAL,
    id_package VARCHAR(10)  NOT NULL,
@@ -137,7 +137,7 @@ CREATE INDEX idx_users_global_learning on users_global_learning(id_user);
 create sequence seq_usr_card_learning;
 CREATE TABLE users_card_learning(
    id VARCHAR(10) default 'LRN'||to_char(nextval('seq_usr_card_learning'), 'fm0000000'),
-   learning_date TIMESTAMP NOT NULL default now(),
+   learning_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    difficulty SMALLINT NOT NULL,
    id_card VARCHAR(10)  NOT NULL,
    id_user VARCHAR(10)  NOT NULL,
@@ -150,8 +150,8 @@ create index idx_users_learning on users_card_learning(id_user);
 create sequence seq_users_revision;
 CREATE TABLE users_revision(
    id VARCHAR(10) default 'REV'||to_char(nextval('seq_users_revision'), 'fm0000000'),
-   last_review TIMESTAMP NOT NULL,
-   next_review TIMESTAMP NOT NULL,
+   last_review TIMESTAMP WITH TIME ZONE NOT NULL,
+   next_review TIMESTAMP WITH TIME ZONE NOT NULL,
    id_user VARCHAR(10)  NOT NULL,
    id_card VARCHAR(10)  NOT NULL,
    is_done BOOLEAN not null default false,
@@ -170,7 +170,7 @@ CREATE TABLE memory_palace(
    img_path VARCHAR(255)  NOT NULL,
    title VARCHAR(30)  NOT NULL,
    state SMALLINT NOT NULL default 0,
-   creation_date TIMESTAMP NOT NULL default now(),
+   creation_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    id_author VARCHAR(10)  NOT NULL,
    PRIMARY KEY(id),
    UNIQUE(title),
@@ -199,7 +199,7 @@ CREATE TABLE quiz(
    title VARCHAR(20)  NOT NULL,
    description VARCHAR(255)  NOT NULL,
    state SMALLINT default 0,
-   creation_date TIMESTAMP NOT NULL default now(),
+   creation_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    id_level VARCHAR(10)  NOT NULL,
    id_theme VARCHAR(10)  NOT NULL,
    img_path VARCHAR(200),
@@ -237,7 +237,7 @@ create index idx_answer on quiz_correct_answer(id_question, state);
 create sequence seq_user_quiz;
 CREATE TABLE user_quiz(
    id VARCHAR(10) default 'UQZ'||to_char(nextval('seq_user_quiz'), 'fm0000000'),
-   quiz_date TIMESTAMP NOT NULL default now(),
+   quiz_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    correct_answers SMALLINT NOT NULL default 0,
    total_questions SMALLINT NOT NULL,
    id_user VARCHAR(10)  NOT NULL,
@@ -266,7 +266,7 @@ create index idx_user_answer on user_quiz_answer(id_user_quiz);
 create sequence seq_card_access;
 CREATE TABLE cards_access(
    id VARCHAR(10) default 'ACC'||to_char(nextval('seq_card_access'), 'fm0000000'),
-   shared_date TIMESTAMP NOT NULL default now(),
+   shared_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    id_card VARCHAR(10)  NOT NULL,
    id_sharer VARCHAR(10) not null,
    id_receiver VARCHAR(10)  NOT NULL,
@@ -282,8 +282,8 @@ create sequence seq_notif;
 CREATE TABLE notifications(
    id VARCHAR(10) default 'NTF'||to_char(nextval('seq_notif'), 'fm0000000'),
    content VARCHAR(250)  NOT NULL,
-   notif_date TIMESTAMP not null default now(),
-   seen_date TIMESTAMP,
+   notif_date TIMESTAMP WITH TIME ZONE not null default now(),
+   seen_date TIMESTAMP WITH TIME ZONE,
    id_user VARCHAR(10)  NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(id_user) REFERENCES user_profiles(id)
@@ -308,8 +308,8 @@ create index idx_group_name on groups(name, state);
 CREATE TABLE group_members(
    id_user VARCHAR(10),
    id_group VARCHAR(10) ,
-   invitation_date TIMESTAMP NOT NULL default now(),
-   acceptation_date TIMESTAMP,
+   invitation_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
+   acceptation_date TIMESTAMP WITH TIME ZONE,
    state SMALLINT not null default 0,
    PRIMARY KEY(id_user, id_group),
    FOREIGN KEY(id_user) REFERENCES user_profiles(id),
@@ -320,7 +320,7 @@ create index idx_group_members on group_members(id_user, acceptation_date, state
 create sequence seq_group_cards;
 CREATE TABLE group_cards(
    id VARCHAR(10) default 'GCD'||to_char(nextval('seq_group_cards'), 'fm0000000'),
-   shared_date TIMESTAMP NOT NULL default now(),
+   shared_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    id_card VARCHAR(10)  NOT NULL,
    id_sharer VARCHAR(10)  NOT NULL,
    id_group VARCHAR(10)  NOT NULL,
@@ -334,7 +334,7 @@ create index idx_group_cards on group_cards(id_group);
 create sequence seq_group_chat;
 CREATE TABLE group_chats(
    id VARCHAR(10) default 'CHT'||to_char(nextval('seq_group_chat'), 'fm000000'),
-   created_date TIMESTAMP NOT NULL default now(),
+   created_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    id_group VARCHAR(10)  NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(id_group) REFERENCES groups(id)
@@ -345,7 +345,7 @@ create sequence seq_chat_messages;
 CREATE TABLE chat_messages(
    id VARCHAR(20) default 'MSG'||to_char(nextval('seq_chat_messages'), 'fm0000000000'),
    content TEXT NOT NULL,
-   send_date TIMESTAMP NOT NULL default now(),
+   send_date TIMESTAMP WITH TIME ZONE NOT NULL default now(),
    id_author VARCHAR(10)  NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(id_author) REFERENCES user_profiles(id)

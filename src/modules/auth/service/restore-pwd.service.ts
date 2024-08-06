@@ -94,23 +94,24 @@ export const generateAndSaveRestorePwdToken = async (
   email: string,
   queryRunner: QueryRunner
 ) => {
-  try {
-    const user = await User.findOneByOrFail({ email });
-    const now = new Date();
-    now.setTime(now.getTime() + RESTORE_TOKEN_DURATION * 60 * 1000);
+  const user = await User.findOneBy({ email });
+  console.log(user);
 
-    const token = jwt.sign({}, process.env.RESTORE_TOKEN_SECRET, {
-      expiresIn: `${RESTORE_TOKEN_DURATION}m`,
-    });
-
-    const restoreToken = new RestoreToken();
-    restoreToken.token = token;
-    restoreToken.idUser = user.id;
-    restoreToken.expirationDate = now;
-
-    // save
-    return await queryRunner.manager.save(restoreToken);
-  } catch (error) {
+  if (user == null) {
     throw new EntityNotFoundError(User, "email");
   }
+  const now = new Date();
+  now.setTime(now.getTime() + RESTORE_TOKEN_DURATION * 60 * 1000);
+
+  const token = jwt.sign({ email: email }, process.env.RESTORE_TOKEN_SECRET, {
+    expiresIn: `${RESTORE_TOKEN_DURATION}m`,
+  });
+
+  const restoreToken = new RestoreToken();
+  restoreToken.token = token;
+  restoreToken.idUser = user.id;
+  restoreToken.expirationDate = now;
+
+  // save
+  return await queryRunner.manager.save(restoreToken);
 };

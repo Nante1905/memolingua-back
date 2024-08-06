@@ -2,7 +2,7 @@ import express = require("express");
 import { configDotenv } from "dotenv";
 import { json } from "express";
 import AppDataSource from "./database/data-source";
-import { RestoreToken } from "./database/entities/RestoreToken";
+import { User } from "./database/entities/User";
 import { corsMiddleware } from "./middlewares/cors.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { sessionMiddleware } from "./middlewares/session.middleware";
@@ -30,7 +30,7 @@ const main = async () => {
   await AppDataSource.initialize();
 
   app.get("/", async (req, res) => {
-    const data = await RestoreToken.find();
+    const data = await User.find();
 
     res.json({
       message: "Hello World",

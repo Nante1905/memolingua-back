@@ -9,7 +9,7 @@ export const authMiddleware = (
   if (!req.headers.authorization) {
     return res.status(401).json({
       ok: false,
-      error: "Unauthorized",
+      error: "Access denied",
     });
   } else {
     const token = req.headers.authorization.split(" ")[1];
@@ -17,7 +17,7 @@ export const authMiddleware = (
       if (err) {
         return res.status(401).json({
           ok: false,
-          error: "Unauthorized",
+          error: "Access denied",
         });
       }
       req.session.user = {

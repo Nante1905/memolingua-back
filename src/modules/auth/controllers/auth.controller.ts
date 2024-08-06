@@ -6,13 +6,18 @@ import {
   ADMIN_ROLE,
   USER_ROLE,
 } from "../../../database/constants/user.constant";
+import { User } from "../../../database/entities/User";
 import { ApiResponse } from "../../../shared/types/ApiResponse";
 import {
+  generateJWT,
+  generateRefreshToken,
   getMe,
   logIn,
+  refreshTokens,
   signup,
   updatePassword,
   updateProfile,
+  validateRefreshToken,
 } from "../service/auth.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
@@ -27,8 +32,11 @@ export class AuthController {
 
       const { email, pwd } = req.body;
       const credentials: AuthCredentials = { email, pwd };
-      const token = await logIn(credentials, USER_ROLE);
-      res.status(StatusCodes.OK).json(new ApiResponse({ payload: token }));
+      const [token, refreshToken] = await logIn(credentials, USER_ROLE);
+
+      res
+        .status(StatusCodes.OK)
+        .json(new ApiResponse({ payload: { token, refreshToken } }));
     } catch (error) {
       if (error instanceof ZodError) {
         const errors: string[] = [];
@@ -128,6 +136,48 @@ export class AuthController {
       } else {
         next(error);
       }
+    }
+  }
+
+  static async generateAccessToken(req: Request, res: Response, user: User) {
+    const accessToken = generateJWT(user, user.role.code);
+    const refreshToken = generateRefreshToken(user);
+    refreshTokens[user.id].add(refreshToken);
+    res.json(
+      new ApiResponse({
+        ok: true,
+        payload: {
+          accessToken,
+          refreshToken,
+        },
+      })
+    );
+  }
+
+  static async refreshTokenHandler(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.body.token) {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          new ApiResponse({
+            ok: false,
+            error: "Token is missing",
+          })
+        );
+        return;
+      }
+      await validateRefreshToken(req, res, req.body.token);
+    } catch (error) {
+      res.json(
+        new ApiResponse({
+          ok: false,
+          error,
+        })
+      );
+      // next(error);
     }
   }
 }

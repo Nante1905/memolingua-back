@@ -7,7 +7,13 @@ import {
   USER_ROLE,
 } from "../../../database/constants/user.constant";
 import { ApiResponse } from "../../../shared/types/ApiResponse";
-import { getMe, logIn, signup, updateProfile } from "../service/auth.service";
+import {
+  getMe,
+  logIn,
+  signup,
+  updatePassword,
+  updateProfile,
+} from "../service/auth.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
 
@@ -103,6 +109,25 @@ export class AuthController {
       );
     } catch (error) {
       next(error);
+    }
+  }
+
+  static async updatePwd(req: Request, res: Response, next: NextFunction) {
+    try {
+      await updatePassword(req.body, req.session.user.id);
+      res.json(new ApiResponse({ message: "Mot de passe modifié" }));
+    } catch (error) {
+      // console.log();
+      if (error instanceof EntityNotFoundError) {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          new ApiResponse({
+            ok: false,
+            error: "Ancien mot de passe invalide",
+          })
+        );
+      } else {
+        next(error);
+      }
     }
   }
 }

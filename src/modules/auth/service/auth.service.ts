@@ -81,3 +81,25 @@ export const updateProfile = async (user: User, id: string) => {
     throw error;
   }
 };
+
+export const updatePassword = async (
+  data: Record<string, string>,
+  id: string
+) => {
+  console.log(data);
+  let current = await User.getRepository()
+    .createQueryBuilder()
+    .where("id= :id and pwd = crypt(:pwd ,pwd)", { id, pwd: data.oldPwd })
+    .getOne();
+
+  if (current) {
+    console.log(data.newPwd);
+
+    await User.getRepository().query(
+      "update user_profiles set pwd=crypt($1, gen_salt('bf')) where id=$2",
+      [data.newPwd, id]
+    );
+  } else {
+    throw new EntityNotFoundError(User, "");
+  }
+};

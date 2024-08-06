@@ -8,16 +8,10 @@ import {
   USER_ROLE,
 } from "../../../database/constants/user.constant";
 import AppDataSource from "../../../database/data-source";
+import { User } from "../../../database/entities/User";
 import { apiErrors } from "../../../shared/constant/api-error.constant";
 import { formatDate } from "../../../shared/services/formatter";
 import { ApiResponse } from "../../../shared/types/ApiResponse";
-import { logIn } from "../service/auth.service";
-import {
-  configureEmailOptions,
-  generateAndSaveRestorePwdToken,
-  restorePwd,
-} from "../service/restore-pwd.service";
-import { User } from "../../../database/entities/User";
 import {
   generateJWT,
   generateRefreshToken,
@@ -29,6 +23,11 @@ import {
   updateProfile,
   validateRefreshToken,
 } from "../service/auth.service";
+import {
+  configureEmailOptions,
+  generateAndSaveRestorePwdToken,
+  restorePwd,
+} from "../service/restore-pwd.service";
 import { AuthCredentials } from "../types/auth.type";
 import { authSchema } from "../validations/authSchema";
 
@@ -201,6 +200,8 @@ export class AuthController {
     next: NextFunction
   ) {
     try {
+      console.log(req.body);
+
       const user = await updateProfile(req.body, req.session.user.id);
       res.json(
         new ApiResponse({ payload: user, message: "Informations modifiées" })

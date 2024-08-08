@@ -152,7 +152,7 @@ export class AuthController {
     const { email, pwd } = req.body;
     const credentials: AuthCredentials = { email, pwd };
     try {
-      const token = await logIn(credentials, ADMIN_ROLE);
+      const token = await logIn(credentials, ADMIN_ROLE, false);
       res.status(StatusCodes.OK).json(new ApiResponse({ payload: token }));
     } catch (error) {
       if (error instanceof EntityNotFoundError) {

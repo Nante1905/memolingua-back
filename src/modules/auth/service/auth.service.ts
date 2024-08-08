@@ -20,7 +20,7 @@ export const generateJWT = (user: User, role: string) => {
       role: role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "1m" }
+    { expiresIn: "30m" }
     // { expiresIn: "5s" }
   );
 };
@@ -32,7 +32,11 @@ export const generateRefreshToken = (user: User) => {
   });
 };
 
-export const logIn = async (credentials: AuthCredentials, role: string) => {
+export const logIn = async (
+  credentials: AuthCredentials,
+  role: string,
+  needRefresh: boolean = true
+) => {
   const user = await User.query(
     "select id, lastname, firstname from v_user_lib where email=$1 and pwd=crypt($2, pwd) and role_code = $3 limit 1",
     [credentials.email, credentials.pwd, role]
@@ -41,11 +45,15 @@ export const logIn = async (credentials: AuthCredentials, role: string) => {
     throw new EntityNotFoundError(User, "");
   }
 
-  const refreshToken = generateRefreshToken(user[0]);
-  !refreshTokens[user[0].id] && (refreshTokens[user[0].id] = new Set());
-  refreshTokens[user[0].id].add(refreshToken);
+  if (needRefresh) {
+    const refreshToken = generateRefreshToken(user[0]);
+    !refreshTokens[user[0].id] && (refreshTokens[user[0].id] = new Set());
+    refreshTokens[user[0].id].add(refreshToken);
 
-  return [generateJWT(user[0], role), refreshToken];
+    return [generateJWT(user[0], role), refreshToken];
+  } else {
+    return generateJWT(user[0], role);
+  }
 };
 
 export const signup = async (user: User) => {

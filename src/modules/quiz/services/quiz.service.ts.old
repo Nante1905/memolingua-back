@@ -1,0 +1,75 @@
+import { Quiz } from "../../../database/entities/Quiz";
+import { QuizQuestion } from "../../../database/entities/QuizQuestion";
+import { Theme } from "../../../database/entities/Theme";
+
+export const getQuetionsByQuizId = async (idQuiz: string) => {
+  // select qq.*, qa.* from quiz q left join quiz_question qq on q.id=qq.id_quiz left join quiz_answer qa on qa.id_question=qq.id and qq.is_qcm=true
+  const data = await QuizQuestion.createQueryBuilder("qq")
+    .leftJoin("qq.answers", "qa", "qq.is_qcm=true")
+    .addSelect(["qa.id", "qa.answer"])
+    .where("qq.id_quiz=:idQuiz", { idQuiz })
+    .getMany();
+  return data;
+};
+
+const factoriseQuizResult = async (quizs: Quiz[], themes: Theme[]) => {
+  // const data: Record<string, Quiz[]> = {};
+  // quizs.map((q) => {
+  //   !data[q.idTheme] && (data[q.idTheme] = []);
+  //   data[q.idTheme].push(q);
+  // });
+  // return data;
+  const a: Record<string, any> = {};
+  quizs.map((q) => {
+    !a[q.idTheme] && (a[q.idTheme] = {});
+    a[q.idTheme].theme = themes.find((t) => t.id === q.idTheme);
+    !a[q.idTheme].quizs && (a[q.idTheme].quizs = []);
+    !a[q.idTheme].quizs.push(q);
+  });
+  return a;
+};
+
+export const getQuizByThemes = async (
+  themes: Theme[],
+  page: number,
+  limit: number
+) => {
+  let query = "";
+  let count = 0;
+  for (let t of themes) {
+    let themeQuery = Quiz.createQueryBuilder()
+      .where(`id_theme = '${t.id.toUpperCase()}'`)
+      .take(limit)
+      .skip((page - 1) * limit)
+      .getSql();
+
+    themeQuery = "( " + themeQuery + ")";
+    if (count == themes.length - 1) {
+      query += themeQuery;
+    } else {
+      query += themeQuery + " UNION ALL ";
+    }
+    query += " ";
+    count++;
+  }
+
+  try {
+    let results = await Quiz.query("select * from (" + query + ") qt");
+    results = results.map((e) => {
+      const q = new Quiz();
+      q.id = e["Quiz_id"];
+      q.title = e["Quiz_title"];
+      q.description = e["Quiz_description"];
+      q.state = e["Quiz_state"];
+      q.creationDate = e["Quiz_creation_date"];
+      q.idLevel = e["Quiz_id_level"];
+      q.idTheme = e["Quiz_id_theme"];
+      q.imgPath = e["Quiz_img_path"];
+      return q;
+    });
+
+    return factoriseQuizResult(results, themes);
+  } catch (err) {
+    throw err;
+  }
+};

@@ -19,6 +19,9 @@ export class QuizAnswer extends BaseEntity {
   @Column()
   state: number;
 
+  @Column({ name: "id_question" })
+  idQuestion: string;
+
   @ManyToOne(() => QuizQuestion)
   @JoinColumn({ name: "id_question" })
   question: QuizQuestion;

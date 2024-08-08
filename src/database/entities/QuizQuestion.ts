@@ -20,7 +20,7 @@ export class QuizQuestion extends BaseEntity {
   @Column()
   state: number;
   @Column({ name: "id_quiz" })
-  idQuiz: number;
+  idQuiz: string;
   @Column({ name: "is_qcm" })
   isQcm: boolean;
 

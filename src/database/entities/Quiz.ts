@@ -15,9 +15,9 @@ export class Quiz extends BaseEntity {
   @Column({ name: "creation_date" })
   creationDate: Date;
   @Column({ name: "id_level" })
-  idLevel: number;
+  idLevel: string;
   @Column({ name: "id_theme" })
-  idTheme: number;
+  idTheme: string;
   @Column({ name: "img_path" })
   imgPath: string;
 

@@ -10,6 +10,7 @@ import { sessionMiddleware } from "./middlewares/session.middleware";
 import { authRoute } from "./routes/auth";
 import { BORouter } from "./routes/backOffice";
 import { loginRouter } from "./routes/login";
+import { quizRouter } from "./routes/quiz.route";
 
 configDotenv();
 
@@ -43,6 +44,7 @@ const main = async () => {
   app.use("/login", loginRouter);
   app.use("/auth", authRoute);
   app.use("/admin", BORouter);
+  app.use("/quizs", quizRouter);
 
   app.use(dbmiddleware);
   app.use(errorMiddleware);

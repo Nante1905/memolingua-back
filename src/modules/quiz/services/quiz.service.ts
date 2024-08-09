@@ -1,4 +1,4 @@
-import { Quiz } from "../../../database/entities/Quiz";
+import { QuizExist } from "../../../database/entities/QuizExist";
 import { QuizQuestion } from "../../../database/entities/QuizQuestion";
 import { Paginated } from "../../../shared/types/Paginated";
 
@@ -17,16 +17,32 @@ export const getQuizByThemes = async (
   page: number,
   limit: number
 ) => {
-  const totalQuizs = await Quiz.createQueryBuilder()
+  const totalQuizs = await QuizExist.createQueryBuilder()
     .where("id_theme=:idTheme", { idTheme })
     .getCount();
-  const quizs = await Quiz.find({
-    where: { idTheme },
-    skip: (page - 1) * limit,
-    take: limit,
-  });
+  const quizs = await await QuizExist.createQueryBuilder("quiz")
+    .leftJoinAndSelect("quiz.questions", "question")
+    .where("quiz.idTheme = :idTheme", { idTheme })
+    .skip((page - 1) * limit)
+    .take(limit)
+    .getMany();
+  // const quizs = await QuizExist.find({
+  //   where: { idTheme },
+  //   skip: (page - 1) * limit,
+  //   take: limit,
+  // });
+  const quizsWithQuestionCount = quizs.map((q) => ({
+    ...q,
+    nbQuestions: q.questions.length,
+    questions: [],
+  }));
 
-  let paginatedQuizs = new Paginated<Quiz>(quizs, totalQuizs, page, limit);
+  let paginatedQuizs = new Paginated<any>(
+    quizsWithQuestionCount,
+    totalQuizs,
+    page,
+    limit
+  );
 
   return paginatedQuizs;
 };

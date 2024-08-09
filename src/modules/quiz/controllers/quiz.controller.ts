@@ -58,8 +58,8 @@ export class QuizController {
     try {
       const data = await getQuizByThemes(
         req.params.idTheme,
-        isNaN(page) ? DEFAULT_PAGE_NUMBER : page,
-        isNaN(limit) ? DEFAULT_ITEM_PER_PAGE : limit
+        isNaN(page) || page === 0 ? DEFAULT_PAGE_NUMBER : page,
+        isNaN(limit) || limit === 0 ? DEFAULT_ITEM_PER_PAGE : limit
       );
       res.json(new ApiResponse({ ok: true, payload: data }));
     } catch (err) {

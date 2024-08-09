@@ -11,6 +11,7 @@ import { authRoute } from "./routes/auth";
 import { BORouter } from "./routes/backOffice";
 import { loginRouter } from "./routes/login";
 import { quizRouter } from "./routes/quiz.route";
+import { themeRouter } from "./routes/theme.route";
 
 configDotenv();
 
@@ -45,6 +46,7 @@ const main = async () => {
   app.use("/auth", authRoute);
   app.use("/admin", BORouter);
   app.use("/quizs", quizRouter);
+  app.use("/themes", themeRouter);
 
   app.use(dbmiddleware);
   app.use(errorMiddleware);

@@ -1,3 +1,5 @@
-// import { Package } from "./Package";
+import { Entity } from "typeorm";
+import { Package } from "./Package";
 
-// export class PackageExist extends Package {}
+@Entity("v_packages_exist")
+export class PackageExist extends Package {}

@@ -1,0 +1,1 @@
+create MATERIALIZED view mv_nb_card_package as select id_package, count(*) nb from v_cards_exist group by id_package;
